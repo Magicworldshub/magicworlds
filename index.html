@@ -13,7 +13,7 @@
 <body>
     <iframe id="adaloFrame" allowfullscreen></iframe>
     <script>
-        const baseAdaloURL = "https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e";
+        const baseAdaloURL = "https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e#";
 
         function getUserId() {
             const fragId = window.location.hash ? window.location.hash.replace(/^#/, '') : null;
@@ -27,30 +27,36 @@
         }
         const userid = getUserId();
 
-        // Initially load the base URL
-        document.getElementById("adaloFrame").src = baseAdaloURL;
+        function setFrameSrcWithUserId(userId) {
+            const frame = document.getElementById("adaloFrame");
+            frame.src = baseAdaloURL + (userId ? userId : "");
+        }
 
-        // After 4 seconds, update the iframe src to include the #userid if available
+        // Initially load the URL with "#" only (so the hash exists even if no id yet)
+        setFrameSrcWithUserId("");
+
+        // After 4 seconds, if userid is available, update the iframe src and refresh the page hash
         setTimeout(() => {
             if (userid) {
-                const frame = document.getElementById("adaloFrame");
-                // Only update if the #userid is not yet present
-                if (!frame.src.endsWith("#" + userid)) {
-                    frame.src = baseAdaloURL + "#" + userid;
+                setFrameSrcWithUserId(userid);
+
+                // Optionally, refresh the website itself with the hash (so user's browser URL updates too)
+                if (!window.location.hash.endsWith(userid)) {
+                    window.location.hash = userid;
+                    // If you want a full page reload (not recommended unless necessary):
+                    // window.location.replace(window.location.pathname + window.location.search + "#" + userid);
                 }
             }
-        }, 10000);
+        }, 4000);
 
-        // If you want to check and fix the hash every time user navigates, observe iframe src changes.
+        // Observe if the iframe src gets changed, and always ensure the correct hash is present in the iframe's src
         const frame = document.getElementById("adaloFrame");
         const observer = new MutationObserver(() => {
-            // Only set after 4 seconds, so ignore changes within first 4 seconds.
-            // If someone manually clears the hash, after 4s this will fix it.
             setTimeout(() => {
                 if (userid && !frame.src.endsWith("#" + userid)) {
-                    frame.src = baseAdaloURL + "#" + userid;
+                    setFrameSrcWithUserId(userid);
                 }
-            }, 10000);
+            }, 4000);
         });
         observer.observe(frame, { attributes: true, attributeFilter: ['src'] });
     </script>
