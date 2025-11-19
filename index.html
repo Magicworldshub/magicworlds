@@ -21,42 +21,72 @@
             border: none;
             display: block;
         }
+        #debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 9999;
+            max-width: 90%;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <iframe id="adaloFrame" src="" allowfullscreen></iframe>
+    <div id="debug"></div>
+    <iframe id="adaloFrame" src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
     
     <script>
-        // Get the iframe element
         const iframe = document.getElementById('adaloFrame');
+        const debug = document.getElementById('debug');
         const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
         
-        // Check if running in Telegram
-        if (window.Telegram && window.Telegram.WebApp) {
-            // Initialize Telegram WebApp
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-            
-            // Get user ID
-            const userId = tg.initDataUnsafe?.user?.id;
-            
-            if (userId) {
-                // Append user ID to Adalo URL with slash before hash
-                const newUrl = `${baseUrl}/#${userId}`;
-                iframe.src = newUrl;
-                
-                // Also update browser URL
-                if (window.location.hash !== `#${userId}`) {
-                    window.history.replaceState(null, '', `#${userId}`);
-                }
-            } else {
-                // Fallback if user ID not available
-                iframe.src = baseUrl;
-            }
-        } else {
-            // Not in Telegram, load normally
-            iframe.src = baseUrl;
+        // Show debug info (remove this after testing)
+        function log(msg) {
+            debug.style.display = 'block';
+            debug.innerHTML += msg + '<br>';
         }
+        
+        // Wait for everything to load
+        setTimeout(() => {
+            try {
+                // Check if Telegram WebApp is available
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    const tg = Telegram.WebApp;
+                    tg.ready();
+                    tg.expand();
+                    
+                    log('Telegram detected');
+                    log('InitData: ' + (tg.initData ? 'Yes' : 'No'));
+                    
+                    // Try to get user ID
+                    const userId = tg.initDataUnsafe?.user?.id;
+                    
+                    if (userId) {
+                        log('User ID: ' + userId);
+                        const newUrl = `${baseUrl}/#${userId}`;
+                        iframe.src = newUrl;
+                        log('Loading: ' + newUrl);
+                    } else {
+                        log('No user ID found');
+                        log('InitDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe));
+                    }
+                } else {
+                    log('Not in Telegram - loading normally');
+                }
+                
+                // Hide debug after 3 seconds
+                setTimeout(() => {
+                    debug.style.display = 'none';
+                }, 3000);
+                
+            } catch (e) {
+                log('Error: ' + e.message);
+            }
+        }, 100);
     </script>
 </body>
 </html>
