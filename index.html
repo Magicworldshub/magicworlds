@@ -14,7 +14,6 @@
         html, body {
             height: 100%;
             overflow: hidden;
-            background: #1a1a1a;
         }
         iframe {
             width: 100%;
@@ -22,72 +21,31 @@
             border: none;
             display: block;
         }
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <div id="loading">Loading...</div>
-    <iframe id="adaloFrame" 
-            allowfullscreen 
-            allow="camera; microphone; geolocation"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+    <iframe id="adaloFrame" src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
     
     <script>
-        (function() {
+        // Wait for page to fully load
+        window.addEventListener('load', function() {
             const iframe = document.getElementById('adaloFrame');
-            const loading = document.getElementById('loading');
             const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
             
-            // Show loading
-            loading.style.display = 'block';
-            
-            // Build URL with Telegram user ID if available
-            let finalUrl = baseUrl;
-            
+            // Check if in Telegram
             if (window.Telegram && window.Telegram.WebApp) {
-                try {
-                    const tg = window.Telegram.WebApp;
-                    tg.ready();
-                    tg.expand();
-                    
-                    // Set theme
-                    if (tg.themeParams) {
-                        document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a1a1a';
-                    }
-                    
-                    const userId = tg.initDataUnsafe?.user?.id;
-                    if (userId) {
-                        finalUrl = `${baseUrl}/#${userId}`;
-                    }
-                } catch (e) {
-                    console.error('Telegram init error:', e);
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                
+                // Get user ID
+                const userId = tg.initDataUnsafe?.user?.id;
+                
+                // If user ID exists, update iframe src
+                if (userId) {
+                    iframe.src = baseUrl + '/#' + userId;
                 }
             }
-            
-            // Load iframe
-            iframe.src = finalUrl;
-            
-            // Hide loading after iframe loads
-            iframe.onload = function() {
-                setTimeout(() => {
-                    loading.style.display = 'none';
-                }, 500);
-            };
-            
-            // Fallback: hide loading after 3 seconds even if iframe doesn't load
-            setTimeout(() => {
-                loading.style.display = 'none';
-            }, 3000);
-        })();
+        });
     </script>
 </body>
 </html>
