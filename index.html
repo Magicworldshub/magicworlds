@@ -24,28 +24,20 @@
     </style>
 </head>
 <body>
-    <iframe id="adaloFrame" src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
+    <iframe src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
     
     <script>
-        // Wait for page to fully load
-        window.addEventListener('load', function() {
-            const iframe = document.getElementById('adaloFrame');
-            const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
+        // Only add user ID to the GitHub URL (not the iframe)
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
             
-            // Check if in Telegram
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                tg.ready();
-                
-                // Get user ID
-                const userId = tg.initDataUnsafe?.user?.id;
-                
-                // If user ID exists, update iframe src
-                if (userId) {
-                    iframe.src = baseUrl + '/#' + userId;
-                }
+            const userId = tg.initDataUnsafe?.user?.id;
+            
+            if (userId && !window.location.hash) {
+                window.location.hash = userId;
             }
-        });
+        }
     </script>
 </body>
 </html>
