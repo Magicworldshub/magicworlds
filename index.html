@@ -13,17 +13,12 @@
 <body>
     <iframe id="adaloFrame" allowfullscreen></iframe>
     <script>
-        // Base Adalo URL - update for your app!
         const baseAdaloURL = "https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e";
 
-        // Helper to get userid from the initial wrapper URL (hash, query, Telegram, etc.)
         function getUserId() {
-            // Try hash fragment
             const fragId = window.location.hash ? window.location.hash.replace(/^#/, '') : null;
-            // Try query parameter
             const params = new URLSearchParams(window.location.search);
             const queryId = params.get("userid");
-            // Telegram API (advanced use, optional)
             let tgId = null;
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
                 tgId = window.Telegram.WebApp.initDataUnsafe.user.id;
@@ -32,36 +27,30 @@
         }
         const userid = getUserId();
 
-        // Function to set iframe src, always auto-appending hash if missing
-        function setAdaloFrameUrl() {
-            let frameUrl = baseAdaloURL;
-            // If Adalo iframe isn't pointing to a URL with the correct hash, add it!
-            const currentSrc = document.getElementById("adaloFrame").src;
-            // If src already contains the userid hash, do nothing
-            if (!userid) {
-                frameUrl = baseAdaloURL; // No user, just base url
-            } else if ((currentSrc === "" || currentSrc === baseAdaloURL) || 
-                       currentSrc === baseAdaloURL + "#" || 
-                       currentSrc === baseAdaloURL + "#" + "" ||
-                       currentSrc.startsWith(baseAdaloURL + "?")) {
-                frameUrl = baseAdaloURL + "#" + userid;
-            } else if (currentSrc === baseAdaloURL + "#" + userid) {
-                frameUrl = currentSrc;
-            } else {
-                // For any other case, preserve current src
-                frameUrl = currentSrc;
-            }
-            document.getElementById("adaloFrame").src = frameUrl;
-        }
+        // Initially load the base URL
+        document.getElementById("adaloFrame").src = baseAdaloURL;
 
-        // Initial load
-        setAdaloFrameUrl();
+        // After 4 seconds, update the iframe src to include the #userid if available
+        setTimeout(() => {
+            if (userid) {
+                const frame = document.getElementById("adaloFrame");
+                // Only update if the #userid is not yet present
+                if (!frame.src.endsWith("#" + userid)) {
+                    frame.src = baseAdaloURL + "#" + userid;
+                }
+            }
+        }, 4000);
 
         // If you want to check and fix the hash every time user navigates, observe iframe src changes.
-        // This mutation observer will auto-fix if Adalo's src resets to base.
         const frame = document.getElementById("adaloFrame");
         const observer = new MutationObserver(() => {
-            setAdaloFrameUrl();
+            // Only set after 4 seconds, so ignore changes within first 4 seconds.
+            // If someone manually clears the hash, after 4s this will fix it.
+            setTimeout(() => {
+                if (userid && !frame.src.endsWith("#" + userid)) {
+                    frame.src = baseAdaloURL + "#" + userid;
+                }
+            }, 4000);
         });
         observer.observe(frame, { attributes: true, attributeFilter: ['src'] });
     </script>
