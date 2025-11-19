@@ -4,40 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Worlds</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-            display: block;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 100vh; border: none; display: block; }
     </style>
 </head>
 <body>
-    <iframe src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
-    
+    <iframe id="adaloFrame" allowfullscreen></iframe>
     <script>
-        // Only add user ID to the GitHub URL (not the iframe)
-        if (window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-            
-            const userId = tg.initDataUnsafe?.user?.id;
-            
-            if (userId && !window.location.hash) {
-                window.location.hash = userId;
+        // The base adalo app link (update if needed)
+        const baseAdaloURL = "https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e";
+        function getUserId() {
+            // Try getting userid from fragment
+            const fragId = window.location.hash ? window.location.hash.replace(/^#/, '') : null;
+            // Try getting userid from query string
+            const params = new URLSearchParams(window.location.search);
+            const queryId = params.get("userid");
+            // Telegram WebApp might expose info in window.Telegram.WebApp.initDataUnsafe
+            let tgId = null;
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                tgId = window.Telegram.WebApp.initDataUnsafe.user.id;
             }
+            // Prefer hash > query > telegram
+            return fragId || queryId || tgId;
         }
+        const userid = getUserId();
+        // Compose URL for iframe: append #userid if present
+        const appUrl = userid ? `${baseAdaloURL}#${userid}` : baseAdaloURL;
+        document.getElementById("adaloFrame").src = appUrl;
     </script>
 </body>
 </html>
