@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Worlds</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -23,6 +24,39 @@
     </style>
 </head>
 <body>
-    <iframe src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
+    <iframe id="adaloFrame" src="" allowfullscreen></iframe>
+    
+    <script>
+        // Get the iframe element
+        const iframe = document.getElementById('adaloFrame');
+        const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
+        
+        // Check if running in Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+            // Initialize Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            
+            // Get user ID
+            const userId = tg.initDataUnsafe?.user?.id;
+            
+            if (userId) {
+                // Append user ID to URL hash
+                const newUrl = `${baseUrl}#${userId}`;
+                iframe.src = newUrl;
+                
+                // Also update browser URL
+                if (window.location.hash !== `#${userId}`) {
+                    window.history.replaceState(null, '', `#${userId}`);
+                }
+            } else {
+                // Fallback if user ID not available
+                iframe.src = baseUrl;
+            }
+        } else {
+            // Not in Telegram, load normally
+            iframe.src = baseUrl;
+        }
+    </script>
 </body>
 </html>
