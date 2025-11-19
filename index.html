@@ -39,7 +39,7 @@
                     frame.src = baseAdaloURL + "#" + userid;
                 }
             }
-        }, 4000);
+        }, 10000);
 
         // If you want to check and fix the hash every time user navigates, observe iframe src changes.
         const frame = document.getElementById("adaloFrame");
@@ -50,7 +50,7 @@
                 if (userid && !frame.src.endsWith("#" + userid)) {
                     frame.src = baseAdaloURL + "#" + userid;
                 }
-            }, 4000);
+            }, 10000);
         });
         observer.observe(frame, { attributes: true, attributeFilter: ['src'] });
     </script>
