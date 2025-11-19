@@ -14,6 +14,7 @@
         html, body {
             height: 100%;
             overflow: hidden;
+            background: #1a1a1a;
         }
         iframe {
             width: 100%;
@@ -21,72 +22,72 @@
             border: none;
             display: block;
         }
-        #debug {
+        #loading {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.8);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: white;
-            padding: 10px;
-            font-size: 12px;
-            z-index: 9999;
-            max-width: 90%;
+            font-family: Arial, sans-serif;
+            text-align: center;
             display: none;
         }
     </style>
 </head>
 <body>
-    <div id="debug"></div>
-    <iframe id="adaloFrame" src="https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e" allowfullscreen></iframe>
+    <div id="loading">Loading...</div>
+    <iframe id="adaloFrame" 
+            allowfullscreen 
+            allow="camera; microphone; geolocation"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
     
     <script>
-        const iframe = document.getElementById('adaloFrame');
-        const debug = document.getElementById('debug');
-        const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
-        
-        // Show debug info (remove this after testing)
-        function log(msg) {
-            debug.style.display = 'block';
-            debug.innerHTML += msg + '<br>';
-        }
-        
-        // Wait for everything to load
-        setTimeout(() => {
-            try {
-                // Check if Telegram WebApp is available
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    const tg = Telegram.WebApp;
+        (function() {
+            const iframe = document.getElementById('adaloFrame');
+            const loading = document.getElementById('loading');
+            const baseUrl = 'https://previewer.adalo.com/9a617ecf-1f98-45a1-a2c1-657fc4b4922e';
+            
+            // Show loading
+            loading.style.display = 'block';
+            
+            // Build URL with Telegram user ID if available
+            let finalUrl = baseUrl;
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    const tg = window.Telegram.WebApp;
                     tg.ready();
                     tg.expand();
                     
-                    log('Telegram detected');
-                    log('InitData: ' + (tg.initData ? 'Yes' : 'No'));
-                    
-                    // Try to get user ID
-                    const userId = tg.initDataUnsafe?.user?.id;
-                    
-                    if (userId) {
-                        log('User ID: ' + userId);
-                        const newUrl = `${baseUrl}/#${userId}`;
-                        iframe.src = newUrl;
-                        log('Loading: ' + newUrl);
-                    } else {
-                        log('No user ID found');
-                        log('InitDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe));
+                    // Set theme
+                    if (tg.themeParams) {
+                        document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a1a1a';
                     }
-                } else {
-                    log('Not in Telegram - loading normally');
+                    
+                    const userId = tg.initDataUnsafe?.user?.id;
+                    if (userId) {
+                        finalUrl = `${baseUrl}/#${userId}`;
+                    }
+                } catch (e) {
+                    console.error('Telegram init error:', e);
                 }
-                
-                // Hide debug after 3 seconds
-                setTimeout(() => {
-                    debug.style.display = 'none';
-                }, 3000);
-                
-            } catch (e) {
-                log('Error: ' + e.message);
             }
-        }, 100);
+            
+            // Load iframe
+            iframe.src = finalUrl;
+            
+            // Hide loading after iframe loads
+            iframe.onload = function() {
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                }, 500);
+            };
+            
+            // Fallback: hide loading after 3 seconds even if iframe doesn't load
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 3000);
+        })();
     </script>
 </body>
 </html>
